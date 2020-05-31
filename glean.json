@@ -1,0 +1,12 @@
+{
+	"provides": "daw_json_link",
+	"build_type": "cmake",
+	"dependencies": [
+		{
+			"provides": "header_libraries",
+			"download_type": "git",
+			"build_type": "cmake",
+			"uri": "https://github.com/beached/header_libraries.git"
+		}
+	]
+}
