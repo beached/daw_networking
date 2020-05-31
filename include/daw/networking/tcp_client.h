@@ -23,12 +23,6 @@ namespace daw::networking {
 		friend class ::daw::networking::shared_tcp_client;
 
 	public:
-		~unique_tcp_client( );
-		unique_tcp_client( unique_tcp_client const & ) = delete;
-		unique_tcp_client( unique_tcp_client && ) noexcept = default;
-		unique_tcp_client &operator=( unique_tcp_client const & ) = delete;
-		unique_tcp_client &operator=( unique_tcp_client && ) noexcept = default;
-
 		unique_tcp_client( );
 		unique_tcp_client( std::string_view host, std::uint16_t port );
 
@@ -58,12 +52,6 @@ namespace daw::networking {
 		std::shared_ptr<network_socket> m_socket;
 
 	public:
-		~shared_tcp_client( );
-		shared_tcp_client( shared_tcp_client const & ) = default;
-		shared_tcp_client( shared_tcp_client && ) noexcept = default;
-		shared_tcp_client &operator=( shared_tcp_client const & ) = default;
-		shared_tcp_client &operator=( shared_tcp_client && ) noexcept = default;
-
 		shared_tcp_client( );
 		shared_tcp_client( std::string_view host, std::uint16_t port );
 		explicit shared_tcp_client( unique_tcp_client &&other );

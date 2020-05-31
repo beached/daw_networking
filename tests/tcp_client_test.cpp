@@ -11,10 +11,10 @@
 int main( ) {
 	// auto client = daw::networking::unique_tcp_client( "localhost", 10240 );
 	auto client = daw::networking::unique_tcp_client( );
-	client.connect_async( "localhost", 10240,
-	                      [] { std::cout << "Connected\n\n"; } );
-	client.write_async(
-	  daw::span<char const>( "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n" ) );
+	client.connect_async( "localhost", 80, [] { std::cout << "Connected\n\n"; } );
+	client.write_async( daw::span<char const>(
+	  "GET / HTTP/1.1\r\nHost: localhost\r\nConnection: Close\r\n\r\n" ) );
+
 	std::string message;
 	message.resize( 1024 );
 	client.read_async(

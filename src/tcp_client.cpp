@@ -33,9 +33,6 @@ namespace daw::networking {
 		m_socket->connect( host, port );
 	}
 
-	unique_tcp_client::~unique_tcp_client( ) = default;
-	shared_tcp_client::~shared_tcp_client( ) = default;
-
 	void unique_tcp_client::connect( std::string_view host, std::uint16_t port ) {
 		m_socket->connect( host, port );
 	}
@@ -72,21 +69,21 @@ namespace daw::networking {
 	}
 
 	std::size_t unique_tcp_client::write( daw::span<const char> buffer ) {
-		return m_socket->write( buffer );
+		return m_socket->send( buffer );
 	}
 
 	std::size_t unique_tcp_client::read( daw::span<char> buffer ) {
-		return m_socket->read( buffer );
+		return m_socket->receive( buffer );
 	}
 
 	async_result<void>
 	unique_tcp_client::write_async( daw::span<const char> buffer ) {
-		return m_socket->write_async( buffer );
+		return m_socket->send_async( buffer );
 	}
 
 	async_result<std::size_t>
 	unique_tcp_client::read_async( daw::span<char> buffer ) {
-		return m_socket->read_async( buffer );
+		return m_socket->receive_async( buffer );
 	}
 
 	async_result<void> unique_tcp_client::read_async(
@@ -98,21 +95,21 @@ namespace daw::networking {
 	}
 
 	std::size_t shared_tcp_client::write( daw::span<const char> buffer ) {
-		return m_socket->write( buffer );
+		return m_socket->send( buffer );
 	}
 
 	std::size_t shared_tcp_client::read( daw::span<char> buffer ) {
-		return m_socket->read( buffer );
+		return m_socket->receive( buffer );
 	}
 
 	async_result<void>
 	shared_tcp_client::write_async( daw::span<const char> buffer ) {
-		return m_socket->write_async( buffer );
+		return m_socket->send_async( buffer );
 	}
 
 	async_result<std::size_t>
 	shared_tcp_client::read_async( daw::span<char> buffer ) {
-		return m_socket->read_async( buffer );
+		return m_socket->receive_async( buffer );
 	}
 
 	async_result<void> shared_tcp_client::read_async(
