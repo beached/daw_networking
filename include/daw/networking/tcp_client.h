@@ -7,7 +7,7 @@
 #pragma once
 
 #include "async_result.h"
-
+#include "network_socket.h"
 #include <daw/daw_span.h>
 
 #include <functional>
@@ -15,14 +15,10 @@
 #include <string_view>
 
 namespace daw::networking {
-	namespace tcp_client_details {
-		class tcp_client_state;
-	}
-
-	class shared_tcp_client;
+	struct shared_tcp_client;
 
 	class unique_tcp_client {
-		std::unique_ptr<tcp_client_details::tcp_client_state> m_state;
+		std::unique_ptr<network_socket> m_socket;
 
 		friend class ::daw::networking::shared_tcp_client;
 
@@ -59,7 +55,7 @@ namespace daw::networking {
 	};
 
 	class shared_tcp_client {
-		std::shared_ptr<tcp_client_details::tcp_client_state> m_state;
+		std::shared_ptr<network_socket> m_socket;
 
 	public:
 		~shared_tcp_client( );

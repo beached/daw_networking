@@ -18,14 +18,13 @@ int main( ) {
 	std::string message;
 	message.resize( 1024 );
 	client.read_async(
-	  { message.data( ), message.size( ) },
+	  message,
 	  [&]( daw::span<char> buff,
 	       std::size_t count ) -> std::optional<daw::span<char>> {
 		  if( count > 0 ) {
 			  auto const old_size = message.size( ) - ( 1024 - count );
-			  message.resize( old_size );
-			  message.resize( message.size( ) + 1024 );
-			  return daw::span<char>( message.data( ) + old_size, 1024 );
+			  message.resize( old_size + 1024 );
+			  return daw::span( message.data( ) + old_size, 1024 );
 		  }
 		  if( count == 0 ) {
 			  message.resize( message.size( ) - 1024 );
