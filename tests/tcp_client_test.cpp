@@ -9,7 +9,6 @@
 #include <iostream>
 
 int main( ) {
-	// auto client = daw::networking::unique_tcp_client( "localhost", 10240 );
 	auto client = daw::networking::unique_tcp_client( );
 	client.connect_async( "localhost", 80, [] { std::cout << "Connected\n\n"; } );
 	client.write_async( daw::span<char const>(

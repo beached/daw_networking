@@ -39,6 +39,12 @@ namespace daw::networking {
 		IPv6 = AF_INET6
 	};
 
+	enum class shutdown_how : int {
+		DisallowReceive = 0,
+		DisallowSend = 1,
+		DisallowSendReceive = 2
+	};
+
 	struct address_info {
 		::addrinfo *m_addresses = nullptr;
 
@@ -96,6 +102,7 @@ namespace daw::networking {
 		basic_network_socket( address_family af, socket_types st );
 		void connect( std::string_view host, std::uint16_t port );
 		void close( );
+		int shutdown( shutdown_how how );
 
 		bool is_open( ) const {
 			auto const lck = std::unique_lock( m_mutex );
@@ -406,6 +413,11 @@ namespace daw::networking {
 			  state->set_value( );
 		  } );
 		return { std::move( state ) };
+	}
+
+	template<typename ExecPolicy>
+	int basic_network_socket<ExecPolicy>::shutdown( shutdown_how how ) {
+		return ::shutdown( m_socket, static_cast<int>( how ) );
 	}
 
 } // namespace daw::networking
