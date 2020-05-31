@@ -126,12 +126,19 @@ namespace daw::networking {
 		[[nodiscard]] async_result<std::size_t>
 		receive_async( daw::span<char> buffer, int flags = 0 );
 
-		async_result<void>
-		read_async( daw::span<char> buffer,
-		            std::function<std::optional<daw::span<char>>( daw::span<char>,
-		                                                          std::size_t )>
-		              on_completion,
-		            int flags = 0 );
+		async_result<void> receive_async(
+		  daw::span<char> buffer,
+		  std::function<std::optional<daw::span<char>>( daw::span<char>,
+		                                                std::size_t )>
+		    on_completion,
+		  int flags = 0 );
+
+		async_result<void> send_async(
+		  daw::span<char const> buffer,
+		  std::function<std::optional<daw::span<char const>>( daw::span<char const>,
+		                                                      std::size_t )>
+		    on_completion,
+		  int flags = 0 );
 	};
 
 	using network_socket = basic_network_socket<async_exec_policy_thread>;
@@ -250,11 +257,12 @@ namespace daw::networking {
 		m_exec.wait( );
 		auto result = ::send( m_socket, buffer.data( ), buffer.size( ), flags );
 		if( result < 0 ) {
-			throw network_exception{ "write error", errno };
+			throw network_exception{ "send error", errno };
 		}
 		return static_cast<std::size_t>( result );
 	}
 
+	// TODO: account for return 0, closure
 	template<typename ExecPolicy>
 	async_result<void>
 	basic_network_socket<ExecPolicy>::send_async( daw::span<const char> buffer,
@@ -271,11 +279,49 @@ namespace daw::networking {
 				  auto r = ::send( m_socket, buffer->data( ), buffer->size( ), flags );
 				  if( r < 0 ) {
 					  state->set_exception( std::make_exception_ptr(
-					    network_exception{ "write error", errno } ) );
+					    network_exception{ "send error", errno } ) );
 					  return;
 				  }
 				  buffer->remove_prefix( r );
 			  }
+			  state->set_value( );
+		  } );
+		return { std::move( state ) };
+	}
+
+	template<typename ExecPolicy>
+	async_result<void> basic_network_socket<ExecPolicy>::send_async(
+	  daw::span<char const> buffer,
+	  std::function<std::optional<daw::span<char const>>( daw::span<char const>,
+	                                                      std::size_t )>
+	    on_completion,
+	  int flags ) {
+		auto const lck = std::unique_lock( m_mutex );
+		auto state = std::make_shared<async_result_state<void>>( );
+
+		m_exec.add_task(
+		  [&, buff = daw::mutable_capture( buffer ),
+		   on_completion = daw::mutable_capture( std::move( on_completion ) ),
+		   state, flags]( ) noexcept {
+			  daw::exception::dbg_precondition_check( is_open_no_lock( ),
+			                                          "Expecting connected socket" );
+			  daw::span<char const> buffer = *buff;
+			  std::size_t const expected_total = buffer.size( );
+			  ::ssize_t r = -1;
+			  auto on_completion_result = std::optional<daw::span<char const>>( );
+			  do {
+				  auto r = ::send( m_socket, buffer.data( ), buffer.size( ), flags );
+				  if( r < 0 ) {
+					  state->set_exception( std::make_exception_ptr(
+					    network_exception{ "send error", errno } ) );
+					  return;
+				  }
+				  on_completion_result =
+				    ( *on_completion )( buffer, static_cast<std::size_t>( r ) );
+				  if( on_completion_result ) {
+					  buffer = *on_completion_result;
+				  }
+			  } while( r != 0 and on_completion_result );
 			  state->set_value( );
 		  } );
 		return { std::move( state ) };
@@ -290,7 +336,7 @@ namespace daw::networking {
 		                                        "Expecting connected socket" );
 		auto result = ::recv( m_socket, buffer.data( ), buffer.size( ), flags );
 		if( result < 0 ) {
-			throw network_exception{ "write error", errno };
+			throw network_exception{ "receive error", errno };
 		}
 		return static_cast<std::size_t>( result );
 	}
@@ -313,7 +359,7 @@ namespace daw::networking {
 				  auto r = ::recv( m_socket, buffer->data( ), buffer->size( ), flags );
 				  if( r < 0 ) {
 					  state->set_exception( std::make_exception_ptr(
-					    network_exception{ "write error", errno } ) );
+					    network_exception{ "receive error", errno } ) );
 					  return;
 				  }
 				  total += static_cast<std::size_t>( r );
@@ -325,7 +371,7 @@ namespace daw::networking {
 	}
 
 	template<typename ExecPolicy>
-	async_result<void> basic_network_socket<ExecPolicy>::read_async(
+	async_result<void> basic_network_socket<ExecPolicy>::receive_async(
 	  daw::span<char> buffer,
 	  std::function<std::optional<daw::span<char>>( daw::span<char>,
 	                                                std::size_t )>
@@ -348,7 +394,7 @@ namespace daw::networking {
 				  auto r = ::recv( m_socket, buffer.data( ), buffer.size( ), flags );
 				  if( r < 0 ) {
 					  state->set_exception( std::make_exception_ptr(
-					    network_exception{ "write error", errno } ) );
+					    network_exception{ "receive error", errno } ) );
 					  return;
 				  }
 				  on_completion_result =

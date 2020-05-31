@@ -39,6 +39,11 @@ namespace daw::networking {
 
 		std::size_t write( daw::span<char const> buffer );
 		async_result<void> write_async( daw::span<char const> buffer );
+		async_result<void> write_async(
+		  daw::span<char const> buffer,
+		  std::function<std::optional<daw::span<char const>>( daw::span<char const>,
+		                                                      std::size_t )>
+		    on_completion );
 		std::size_t read( daw::span<char> buffer );
 		async_result<std::size_t> read_async( daw::span<char> buffer );
 		async_result<void>
@@ -69,6 +74,11 @@ namespace daw::networking {
 
 		std::size_t write( daw::span<char const> buffer );
 		async_result<void> write_async( daw::span<char const> buffer );
+		async_result<void> write_async(
+			daw::span<char const> buffer,
+			std::function<std::optional<daw::span<char const>>( daw::span<char const>,
+																													std::size_t )>
+			on_completion );
 		std::size_t read( daw::span<char> buffer );
 		async_result<std::size_t> read_async( daw::span<char> buffer );
 		async_result<void>

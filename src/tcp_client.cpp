@@ -13,11 +13,11 @@
 namespace daw::networking {
 	unique_tcp_client::unique_tcp_client( )
 	  : m_socket( std::make_unique<network_socket>( address_family::Unspecified,
-	                                               socket_types::Stream ) ) {}
+	                                                socket_types::Stream ) ) {}
 
 	shared_tcp_client::shared_tcp_client( )
 	  : m_socket( std::make_shared<network_socket>( address_family::Unspecified,
-	                                               socket_types::Stream ) ) {}
+	                                                socket_types::Stream ) ) {}
 
 	unique_tcp_client::unique_tcp_client( std::string_view host,
 	                                      std::uint16_t port )
@@ -91,7 +91,23 @@ namespace daw::networking {
 	  std::function<std::optional<daw::span<char>>( daw::span<char>,
 	                                                std::size_t )>
 	    on_completion ) {
-		return m_socket->read_async( buffer, std::move( on_completion ) );
+		return m_socket->receive_async( buffer, std::move( on_completion ) );
+	}
+
+	async_result<void> unique_tcp_client::write_async(
+	  daw::span<const char> buffer,
+	  std::function<std::optional<daw::span<const char>>( daw::span<const char>,
+	                                                      std::size_t )>
+	    on_completion ) {
+		return m_socket->send_async( buffer, std::move( on_completion ) );
+	}
+
+	async_result<void> shared_tcp_client::write_async(
+	  daw::span<const char> buffer,
+	  std::function<std::optional<daw::span<const char>>( daw::span<const char>,
+	                                                      std::size_t )>
+	    on_completion ) {
+		return m_socket->send_async( buffer, std::move( on_completion ) );
 	}
 
 	std::size_t shared_tcp_client::write( daw::span<const char> buffer ) {
@@ -117,7 +133,7 @@ namespace daw::networking {
 	  std::function<std::optional<daw::span<char>>( daw::span<char>,
 	                                                std::size_t )>
 	    on_completion ) {
-		return m_socket->read_async( buffer, std::move( on_completion ) );
+		return m_socket->receive_async( buffer, std::move( on_completion ) );
 	}
 
 	async_result<void> shared_tcp_client::close_async( ) {
